@@ -6,9 +6,9 @@
             "type": "endpoint",
             "appId": "46f45444-1bc7-4a11-a4d2-e957ecb5ab51",
             "appPassword": "hk7Drhun?A:tbWnQBMr)u[Nk",
-            "endpoint": "https://localhost:3978/api/messages",
-            "id": "5b32db90-935e-11ea-8cc0-bde3a2f2274a",
-            "name": "https://localhost:3978/api/messages"
+            "endpoint": "http://localhost:3978/api/messages",
+            "id": "62c7ad40-9363-11ea-8cc0-bde3a2f2274a",
+            "name": "http://localhost:3978/api/messages"
         }
     ],
     "padlock": "",

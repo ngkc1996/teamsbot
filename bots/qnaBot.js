@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-const { ActivityHandler, TeamsActivityHandler } = require('botbuilder');
+const { ActivityHandler, TeamsActivityHandler, MessageFactory } = require('botbuilder');
+
+const { TextEncoder } = require('util');
 
 /**
  * A simple bot that responds to utterances with answers from QnA Maker.
@@ -26,10 +28,23 @@ class QnABot extends TeamsActivityHandler {
         this.dialogState = this.conversationState.createProperty('DialogState');
 
         this.onMessage(async (context, next) => {
-            console.log('Running dialog with Message Activity.');
+            
+            const botMessageText = context.activity.text.trim().toLowerCase();
+            await context.sendActivity('you sent a message');
+            //Start command        
+            if (botMessageText === "start") {
+                  await context.sendActivity('you are in start');
+                  await this.handleMessageStart(context);
+            } else {
+                await context.sendActivity('you entered the else statement');
+                
+                console.log('Running dialog with Message Activity. User message: ' + botMessageText);
 
-            // Run the Dialog with the new message Activity.
-            await this.dialog.run(context, this.dialogState);
+                // Run the Dialog with the new message Activity.
+                await this.dialog.run(context, this.dialogState);
+            }
+
+            
 
             // By calling next() you ensure that the next BotHandler is run.
             await next();
@@ -40,7 +55,7 @@ class QnABot extends TeamsActivityHandler {
             const membersAdded = context.activity.membersAdded;
             for (let cnt = 0; cnt < membersAdded.length; cnt++) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
-                    await context.sendActivity('Welcome to the AskGIG chatbot test version! Ask me a question and I will try to answer it.');
+                    await context.sendActivity('Welcome to the AskGIG chatbot test version! Ask me a question and I will try to answer it. edit ');
                 }
             }
 
@@ -72,6 +87,22 @@ class QnABot extends TeamsActivityHandler {
             await next();
         });
     }
+
+    // Start function
+    // start function only works in emulator, not on web chat or teams
+    async handleMessageStart(context) {
+        await context.sendActivity('you are in start function');
+        const mention = {
+            mentioned: context.activity.from,
+            text: `<at>${new TextEncoder().encode(context.activity.from.name)}</at>`,
+            type: "mention"
+        };
+
+        const replyActivity = MessageFactory.text(`Hi ${mention.text} from a 1:1 chat. Ask me a question and I will try my best to answer it.`);
+        replyActivity.entities = [mention];
+        await context.sendActivity(replyActivity);
+    }
+
 }
 
 module.exports.QnABot = QnABot;
