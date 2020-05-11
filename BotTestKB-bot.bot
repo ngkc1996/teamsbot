@@ -1,0 +1,18 @@
+{
+    "name": "BotTestKB-bot",
+    "description": "",
+    "services": [
+        {
+            "type": "endpoint",
+            "appId": "46f45444-1bc7-4a11-a4d2-e957ecb5ab51",
+            "appPassword": "LvxHnNbBNjzbls6fIyZ0xQ==!ont47HZ6sVR87r7DL56jsOQqe+73QniaEKM+oMyQyfQ=",
+            "endpoint": "http://localhost:3978/api/messages",
+            "id": "29eb4b50-9334-11ea-9623-75e000461555",
+            "name": "http://localhost:3978/api/messages"
+        }
+    ],
+    "padlock": "rM4Zg+KBqZ/+YA8an3NFDg==!V0Nji1RNq2bGBTe0dpFjMlKsO5G4kjCEPYmTS3Xrve07CJj+eKIeJcNh9sRhCPzr",
+    "version": "2.0",
+    "overrides": null,
+    "path": "C:\\Users\\Kai Chin\\Documents\\GovTech\\bottestkb-bot-src\\BotTestKB-bot.bot"
+}
