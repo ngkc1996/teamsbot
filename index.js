@@ -74,6 +74,7 @@ const qnaService = new QnAMaker({
 });
 
 // Create the main dialog.
+// passes the QnAMaker credentials into RootDialog
 const dialog = new RootDialog(qnaService);
 
 // Create the bot's main handler.

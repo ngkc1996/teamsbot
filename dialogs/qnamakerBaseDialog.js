@@ -10,9 +10,9 @@ const {
 const { QnACardBuilder } = require('../utils/qnaCardBuilder');
 
 // Default parameters
-const DefaultThreshold = 0.3;
+const DefaultThreshold = 0.5;
 const DefaultTopN = 3;
-const DefaultNoAnswer = 'No QnAMaker answers found.';
+const DefaultNoAnswer = 'No suitable answer found. Please refine your answer, or send a query via AskGIG: <insert link>.';
 
 // Card parameters
 const DefaultCardTitle = 'Did you mean:';
@@ -29,12 +29,12 @@ const PreviousQnAId = 'prevQnAId';
 
 /// QnA Maker dialog.
 const QNAMAKER_DIALOG = 'qnamaker-dialog';
-const QNAMAKER_BASE_DIALOG = 'qnamaker-base-dailog';
+const QNAMAKER_BASE_DIALOG = 'qnamaker-base-dialog';
 
 class QnAMakerBaseDialog extends ComponentDialog {
     /**
      * Core logic of QnA Maker dialog.
-     * @param {QnAMaker} qnaService A QnAMaker service object.
+     * @param {QnAMaker} qnaService A QnAMaker service object. - the same qnaService passed into RootDialog in index.js
      */
     constructor(qnaService) {
         super(QNAMAKER_BASE_DIALOG);
@@ -60,11 +60,14 @@ class QnAMakerBaseDialog extends ComponentDialog {
             scoreThreshold: DefaultThreshold,
             top: DefaultTopN,
             context: {},
-            qnaId: -1
+            qnaId: -1 //sets current id to -1
         };
 
+        // where does getDialogOptionsValue come from??
+        // - presumably it gets the dialogOptions object from 
         var dialogOptions = getDialogOptionsValue(stepContext);
 
+        // making sure dialogOptions is properly filled
         if (dialogOptions[QnAOptions] != null) {
             qnaMakerOptions = dialogOptions[QnAOptions];
             qnaMakerOptions.scoreThreshold = qnaMakerOptions.scoreThreshold ? qnaMakerOptions.scoreThreshold : DefaultThreshold;
@@ -224,15 +227,15 @@ class QnAMakerBaseDialog extends ComponentDialog {
 
         var reply = stepContext.context.activity.text;
 
-        if (reply === qnaDialogResponseOptions.cardNoMatchText) {
-            await stepContext.context.sendActivity(qnaDialogResponseOptions.cardNoMatchResponse);
-            return await stepContext.endDialog();
-        }
+        // if (reply === qnaDialogResponseOptions.cardNoMatchText) {
+        //     await stepContext.context.sendActivity(qnaDialogResponseOptions.cardNoMatchResponse);
+        //     return await stepContext.endDialog();
+        // }
 
-        var previousQnAId = dialogOptions[PreviousQnAId];
-        if (previousQnAId > 0) {
-            return await stepContext.replaceDialog(QNAMAKER_DIALOG, dialogOptions);
-        }
+        // var previousQnAId = dialogOptions[PreviousQnAId];
+        // if (previousQnAId > 0) {
+        //     return await stepContext.replaceDialog(QNAMAKER_DIALOG, dialogOptions);
+        // }
 
         var responses = stepContext.result;
         if (responses != null) {

@@ -1,3 +1,6 @@
 node_modules/
 *.js.map
-.env
+.archive/
+.manifest/
+*.zip
+*.bot

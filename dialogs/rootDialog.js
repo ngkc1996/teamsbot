@@ -5,7 +5,8 @@ const {
     ComponentDialog,
     DialogSet,
     DialogTurnStatus,
-    WaterfallDialog
+    WaterfallDialog,
+    ConfirmPrompt //new
 } = require('botbuilder-dialogs');
 
 const {
@@ -23,6 +24,7 @@ const {
 
 const INITIAL_DIALOG = 'initial-dialog';
 const ROOT_DIALOG = 'root-dialog';
+const CONFIRM_PROMPT = 'CONFIRM_PROMPT'; //new
 
 class RootDialog extends ComponentDialog {
     /**
@@ -32,12 +34,17 @@ class RootDialog extends ComponentDialog {
     constructor(qnaService) {
         super(ROOT_DIALOG);
 
+        this._qnaMakerService = qnaService;
+
         // Initial waterfall dialog.
         this.addDialog(new WaterfallDialog(INITIAL_DIALOG, [
-            this.startInitialDialog.bind(this)
+            this.startInitialDialog.bind(this), //remove the comma if only one
+            this.askStep.bind(this),
+            this.confirmStep.bind(this) // new
         ]));
 
         this.addDialog(new QnAMakerBaseDialog(qnaService));
+        this.addDialog(new ConfirmPrompt(CONFIRM_PROMPT)); //new
 
         this.initialDialogId = INITIAL_DIALOG;
     }
@@ -55,6 +62,8 @@ class RootDialog extends ComponentDialog {
         const dialogContext = await dialogSet.createContext(context);
         const results = await dialogContext.continueDialog();
         if (results.status === DialogTurnStatus.empty) {
+            console.log("new dialog made!"); //debug
+
             await dialogContext.beginDialog(this.id);
         }
     }
@@ -63,25 +72,78 @@ class RootDialog extends ComponentDialog {
     // It kicks off the dialog with the QnA Maker with provided options.
     async startInitialDialog(step) {
         // Set values for generate answer options.
-        var qnamakerOptions = {
+        var qnaMakerOptions = {
             scoreThreshold: DefaultThreshold,
             top: DefaultTopN,
             context: {}
         };
 
+
+        // try to put the whole QnA response here instead:
+        var responses = await this._qnaMakerService.getAnswersRaw(step.context, qnaMakerOptions);
+        console.log(responses);
+        step.values.result = responses;
+
+        if (responses != null) {
+            if (responses.answers.length > 0) {
+                await step.context.sendActivity(responses.answers[0].answer);
+                return await step.next();
+            } else {
+                await step.context.sendActivity("No suitable answer found. Post your answer on AskGIG, or rephrase your question.");
+                return await step.endDialog();
+            }
+        } else {
+            await step.context.sendActivity("Also no answer.");
+            return await step.next();
+        }
+
+        // if (responses != null) {
+        //     if (responses.answers.length > 0) {
+        //         await step.context.sendActivity(responses.answers[0]);
+        //     } else {
+        //         await step.context.sendActivity("No suitable answer found.");
+        //     }
+        // }
+
+        
+
         // Set values for dialog responses.
-        var qnaDialogResponseOptions = {
-            noAnswer: DefaultNoAnswer,
-            activeLearningCardTitle: DefaultCardTitle,
-            cardNoMatchText: DefaultCardNoMatchText,
-            cardNoMatchResponse: DefaultCardNoMatchResponse
-        };
+        // var qnaDialogResponseOptions = {
+        //     noAnswer: DefaultNoAnswer,
+        //     activeLearningCardTitle: DefaultCardTitle,
+        //     cardNoMatchText: DefaultCardNoMatchText,
+        //     cardNoMatchResponse: DefaultCardNoMatchResponse
+        // };
 
-        var dialogOptions = {};
-        dialogOptions[QnAOptions] = qnamakerOptions;
-        dialogOptions[QnADialogResponseOptions] = qnaDialogResponseOptions;
+        // var dialogOptions = {};
+        // dialogOptions[QnAOptions] = qnamakerOptions;
+        // dialogOptions[QnADialogResponseOptions] = qnaDialogResponseOptions;
 
-        return await step.beginDialog(QNAMAKER_BASE_DIALOG, dialogOptions);
+        //return await step.beginDialog(QNAMAKER_BASE_DIALOG, dialogOptions);
+        
+        
+    }
+
+    async askStep(step) {
+        // maybe??
+        //step.values.transport = step.result.value;
+
+        //console.log(step.result.value);
+
+        return await step.prompt(CONFIRM_PROMPT, 'Was this answer satisfactory?', ['Yes', 'No']);
+    }
+
+    async confirmStep(step) {
+        if (step.result) {
+            await step.context.sendActivity('That is great news. I\'ll be here if you have more questions.');
+        } else {
+            console.log(`this is the result:  ${step.values.result}`);
+            const category = step.values.result.answers[0].metadata[0].value;
+            console.log(category);
+            await step.context.sendActivity(`Post your answer on AskGIG, under the category: '${category}'. Please try asking more questions.`);
+        }
+
+        return await step.endDialog();
     }
 }
 
