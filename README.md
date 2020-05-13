@@ -8,7 +8,7 @@ To create a conversational bot in Microsoft Teams using Bot Framework.
 
 ## To try this sample
 
-### Try on Azure
+### Try on Azure (recommended)
 
 Note: You must have a DiamondSG account.
 
@@ -21,6 +21,7 @@ Note: You must have a DiamondSG account.
 
 #### Clone and run
 
+Note: You need to ask the author for the necessary credentials in the .env file.
 
 - Clone the repository
 
