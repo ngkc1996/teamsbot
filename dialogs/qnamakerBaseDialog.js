@@ -222,10 +222,10 @@ class QnAMakerBaseDialog extends ComponentDialog {
     * @param {WaterfallStepContext} stepContext contextual information for the current step being executed.
     */
     async displayQnAResult(stepContext) {
-        var dialogOptions = getDialogOptionsValue(stepContext);
-        var qnaDialogResponseOptions = dialogOptions[QnADialogResponseOptions];
+        //var dialogOptions = getDialogOptionsValue(stepContext);
+        //var qnaDialogResponseOptions = dialogOptions[QnADialogResponseOptions];
 
-        var reply = stepContext.context.activity.text;
+        //var reply = stepContext.context.activity.text;
 
         // if (reply === qnaDialogResponseOptions.cardNoMatchText) {
         //     await stepContext.context.sendActivity(qnaDialogResponseOptions.cardNoMatchResponse);
