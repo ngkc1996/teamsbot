@@ -38,14 +38,16 @@ class RootDialog extends ComponentDialog {
 
         // Initial waterfall dialog.
         this.addDialog(new WaterfallDialog(INITIAL_DIALOG, [
+            this.guidedConversationChoiceStep.bind(this),
+            this.categoriesStep(this),
             this.startInitialDialog.bind(this), //remove the comma if only one
             this.askStep.bind(this),
             this.confirmStep.bind(this) // new
         ]));
 
-        this.addDialog(new QnAMakerBaseDialog(qnaService));
+        //this.addDialog(new QnAMakerBaseDialog(qnaService));
         this.addDialog(new ConfirmPrompt(CONFIRM_PROMPT)); //new
-
+        this.addDialog(new ChoicePrompt(CHOICE_PROMPT));
         this.initialDialogId = INITIAL_DIALOG;
     }
 
@@ -66,6 +68,21 @@ class RootDialog extends ComponentDialog {
 
             await dialogContext.beginDialog(this.id);
         }
+    }
+
+    // Ask user if they wants a free query or guided conversation
+    async guidedConversationChoiceStep(step) {
+        return await step.prompt(CHOICE_PROMPT, {
+            prompt: 'Please enter your mode of transport.',
+            choices: ChoiceFactory.toChoices(['Write my own query.', 'Give me some categories to choose from.'])
+        });
+    }
+
+    async categoriesStep(step){
+        return await step.prompt(CHOICE_PROMPT, {
+            prompt: 'You chose Guided Query. Please select from the following categories.',
+            choices: ChoiceFactory.toChoices(['Write my own query.', 'Give me some categories to choose from.'])
+        });
     }
 
     // This is the first step of the WaterfallDialog.

@@ -67,27 +67,22 @@ class QnABot extends TeamsActivityHandler {
             await next();
         });
 
-        // testing compatibility with teams functionality
         // only "like" works for now
-        // should be a stand alone functionality, shouldn't affect the rest
-        // to be added in after dialog is done
-
-        // this.onReactionsAdded(async (context, next) => {
-        //     if (context.activity.reactionsAdded) {
-        //         context.activity.reactionsAdded.forEach(async (reaction) => {
-        //             if (reaction.type === "like" || "heart" || "laugh") {
-        //                 await context.sendActivity("Thank you!");
-        //             } else if (reaction.type === "surprised" || "sad" || "angry") {
-        //                 await context.sendActivity("Was there something wrong with the answer? Please let us know.");
-        //             }
-        //         });
-        //     }
-        //     await next();
-        // });
+        this.onReactionsAdded(async (context, next) => {
+            if (context.activity.reactionsAdded) {
+                context.activity.reactionsAdded.forEach(async (reaction) => {
+                    if (reaction.type === "like" || "heart" || "laugh") {
+                        await context.sendActivity("Thank you!");
+                    } else if (reaction.type === "surprised" || "sad" || "angry") {
+                        await context.sendActivity("Was there something wrong with the answer? Please let us know.");
+                    }
+                });
+            }
+            await next();
+        });
     }
 
     // Start function
-    // if it gets problematic, can remove this function first
     async handleMessageStart(context) {
         const mention = {
             mentioned: context.activity.from,

@@ -4,15 +4,15 @@
     "services": [
         {
             "type": "endpoint",
-            "appId": "46f45444-1bc7-4a11-a4d2-e957ecb5ab51",
-            "appPassword": "hk7Drhun?A:tbWnQBMr)u[Nk",
+            "appId": "",
+            "appPassword": "",
             "endpoint": "http://localhost:3978/api/messages",
-            "id": "62c7ad40-9363-11ea-8cc0-bde3a2f2274a",
+            "id": "318bc870-98ad-11ea-b87c-513e0953ae18",
             "name": "http://localhost:3978/api/messages"
         }
     ],
     "padlock": "",
     "version": "2.0",
     "overrides": null,
-    "path": "C:\\Users\\Kai Chin\\Documents\\GovTech\\teamsbot\\TeamsBot.bot"
+    "path": "C:\\Users\\Kai Chin\\Documents\\Code\\GovTech\\teamsbot\\TeamsBot.bot"
 }
