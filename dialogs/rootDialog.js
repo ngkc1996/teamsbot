@@ -6,7 +6,10 @@ const {
     DialogSet,
     DialogTurnStatus,
     WaterfallDialog,
-    ConfirmPrompt //new
+    ConfirmPrompt, //new
+    ChoicePrompt, 
+    ChoiceFactory,
+    TextPrompt,
 } = require('botbuilder-dialogs');
 
 const {
@@ -22,9 +25,14 @@ const {
     QnADialogResponseOptions
 } = require('./qnamakerBaseDialog');
 
+// Child dialogs
+const { BrowseDialog, BROWSE_DIALOG } = require('./browseDialog');
+
 const INITIAL_DIALOG = 'initial-dialog';
 const ROOT_DIALOG = 'root-dialog';
 const CONFIRM_PROMPT = 'CONFIRM_PROMPT'; //new
+const CHOICE_PROMPT = 'CHOICE_PROMPT';
+const TEXT_PROMPT = 'TEXT_PROMPT';
 
 class RootDialog extends ComponentDialog {
     /**
@@ -38,16 +46,20 @@ class RootDialog extends ComponentDialog {
 
         // Initial waterfall dialog.
         this.addDialog(new WaterfallDialog(INITIAL_DIALOG, [
-            this.guidedConversationChoiceStep.bind(this),
-            this.categoriesStep(this),
-            this.startInitialDialog.bind(this), //remove the comma if only one
+            //this.guidedConversationChoiceStep.bind(this),
+            //this.browseStep.bind(this), //browse
+            //this.categoriesStep.bind(this),
+            this.qnaQuestionStep.bind(this),
+            this.startInitialDialog.bind(this),
             this.askStep.bind(this),
             this.confirmStep.bind(this) // new
         ]));
 
         //this.addDialog(new QnAMakerBaseDialog(qnaService));
+        this.addDialog(new BrowseDialog()); //browse
         this.addDialog(new ConfirmPrompt(CONFIRM_PROMPT)); //new
         this.addDialog(new ChoicePrompt(CHOICE_PROMPT));
+        this.addDialog(new TextPrompt(TEXT_PROMPT));
         this.initialDialogId = INITIAL_DIALOG;
     }
 
@@ -57,32 +69,51 @@ class RootDialog extends ComponentDialog {
      * @param {*} turnContext
      * @param {*} accessor
      */
-    async run(context, accessor) {
+    async run(context, accessor, botMessageText) {
         const dialogSet = new DialogSet(accessor);
         dialogSet.add(this);
 
         const dialogContext = await dialogSet.createContext(context);
         const results = await dialogContext.continueDialog();
         if (results.status === DialogTurnStatus.empty) {
-            console.log("new dialog made!"); //debug
-
-            await dialogContext.beginDialog(this.id);
+        	// If no existing dialog, user must type "query" in order to start the dialog.
+        	if (botMessageText !== "query") {
+        		await context.sendActivity("I did not recognise that command. Try typing **_help_**.");
+        	} else {
+				console.log("new dialog made!"); //debug
+        		await dialogContext.beginDialog(this.id);
+        	}
         }
     }
 
     // Ask user if they wants a free query or guided conversation
     async guidedConversationChoiceStep(step) {
         return await step.prompt(CHOICE_PROMPT, {
-            prompt: 'Please enter your mode of transport.',
+            prompt: 'You . Please choose: ',
             choices: ChoiceFactory.toChoices(['Write my own query.', 'Give me some categories to choose from.'])
         });
     }
+    //browse
+    async browseStep(step) { 
+    	return await step.beginDialog(BROWSE_DIALOG);
+    }
 
     async categoriesStep(step){
+        await step.context.sendActivity(step.result);
+        if (step.result === 'end') {
+        	return await step.endDialog();
+        }
+        
         return await step.prompt(CHOICE_PROMPT, {
             prompt: 'You chose Guided Query. Please select from the following categories.',
             choices: ChoiceFactory.toChoices(['Write my own query.', 'Give me some categories to choose from.'])
         });
+    }
+
+
+    async qnaQuestionStep(step) {
+    	const promptOptions = { prompt: 'Please type your query.' };
+        return await step.prompt(TEXT_PROMPT, promptOptions);
     }
 
     // This is the first step of the WaterfallDialog.
@@ -97,6 +128,7 @@ class RootDialog extends ComponentDialog {
 
 
         // try to put the whole QnA response here instead:
+        step.context.activity.text = step.result;
         var responses = await this._qnaMakerService.getAnswersRaw(step.context, qnaMakerOptions);
         console.log(responses);
         step.values.result = responses;
@@ -152,12 +184,13 @@ class RootDialog extends ComponentDialog {
 
     async confirmStep(step) {
         if (step.result) {
-            await step.context.sendActivity('That is great news. I\'ll be here if you have more questions.');
+            await step.context.sendActivity('Great, happy to help. Type **_query_** to start a new query.');
         } else {
             console.log(`this is the result:  ${step.values.result}`);
             const category = step.values.result.answers[0].metadata[0].value;
             console.log(category);
-            await step.context.sendActivity(`Post your answer on AskGIG, under the category: '${category}'. Please try asking more questions.`);
+            await step.context.sendActivity(`Sorry to hear that. Post your answer on AskGIG, under the category: '${category}'. \
+            	\n\n Try asking more questions using **_query_**.`);
         }
 
         return await step.endDialog();

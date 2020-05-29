@@ -1,0 +1,13 @@
+curl https://qnakbteams.azurewebsites.net/qnamaker/v4.0/operations/95fd11ad-0207-42e6-b68e-4ddc63eb77ec/Prod/qna \
+-X GET \
+-H "Ocp-Apim-Subscription-Key: af26dd62-26ac-4f30-a04f-0323fe17c682"
+
+
+
+curl -X POST https://qnakbteams.azurewebsites.net/qnamaker/v4.0/knowledgebases/95fd11ad-0207-42e6-b68e-4ddc63eb77ec/Prod/qna -H "Authorization: EndpointKey af26dd62-26ac-4f30-a04f-0323fe17c682" 
+
+@ECHO OFF
+
+curl -v -X GET "https://qnakbteams.azurewebsites.net/qnamaker/v4.0/knowledgebases/95fd11ad-0207-42e6-b68e-4ddc63eb77ec/Prod/qna" \
+-H "Ocp-Apim-Subscription-Key: {subscription key}" \
+--data-ascii "{body}" 

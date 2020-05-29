@@ -12,6 +12,9 @@ const { QnAMaker } = require('botbuilder-ai');
 const { QnABot } = require('./bots/qnaBot');
 const { RootDialog } = require('./dialogs/rootDialog');
 
+// for authentication
+const { LoginDialog } = require('./dialogs/loginDialog');
+
 // Note: Ensure you have a .env file and include QnAMakerKnowledgeBaseId, QnAMakerEndpointKey and QnAMakerHost.
 const ENV_FILE = path.join(__dirname, '.env');
 require('dotenv').config({ path: ENV_FILE });
@@ -74,9 +77,10 @@ const qnaService = new QnAMaker({
 // Create the main dialog.
 // passes the QnAMaker credentials into RootDialog
 const dialog = new RootDialog(qnaService);
+const loginDialog = new LoginDialog();
 
 // Create the bot's main handler.
-const bot = new QnABot(conversationState, userState, dialog);
+const bot = new QnABot(conversationState, userState, dialog, loginDialog);
 
 // Create HTTP server
 const server = restify.createServer();
