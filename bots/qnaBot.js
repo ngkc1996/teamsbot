@@ -4,6 +4,8 @@
 const { ActivityHandler, TeamsActivityHandler, MessageFactory } = require('botbuilder');
 
 const { TextEncoder } = require('util');
+const { LOGIN_DIALOG } = require('../dialogs/loginDialog');
+const { EndConversationDialog } = require('../dialogs/endConversationDialog.js');
 
 class QnABot extends TeamsActivityHandler {
     /**
@@ -17,6 +19,7 @@ class QnABot extends TeamsActivityHandler {
         if (!conversationState) throw new Error('[QnABot]: Missing parameter. conversationState is required');
         if (!userState) throw new Error('[QnABot]: Missing parameter. userState is required');
         if (!dialog) throw new Error('[QnABot]: Missing parameter. dialog is required');
+        if (!loginDialog) throw new Error('[QnABot]: Missing parameter. loginDialog is required');
 
         this.conversationState = conversationState;
         this.userState = userState;
@@ -30,47 +33,81 @@ class QnABot extends TeamsActivityHandler {
             const timeGreeting = await this.timeOfDay();
             for (let cnt = 0; cnt < membersAdded.length; cnt++) {
                 if (membersAdded[cnt].id !== context.activity.recipient.id) {
-                    await context.sendActivity(`Good ${timeGreeting}! Welcome to the GovTech AskGIG chatbot.`);
+                    await context.sendActivity(`# AskGIG Chatbot \
+                        \n\n Good ${timeGreeting}! Welcome to the GovTech AskGIG Chatbot. \
+                        \n\n Type anything to start. \
+                    `);
                 }
             }
-            // Starts the LoginDialog.
-            await this.loginDialog.run(context, this.dialogState);
+            console.log("onMembersAdded");
+
+            // Need to account for the scenario where the user has active conversations upon launching the app for the first time
+            // E.g. installed in the past
+
+            // forcing a logout
+            await loginDialog.run(context, conversationState.createProperty('DialogState'));
+
+            // const endConversationDialog = new EndConversationDialog();
+            // await endConversationDialog.run(context, this.dialogState);
+
+            //onsole.log('onMembersAdded, context.activity.type: ' + String(context.activity.type)); 
+            //await this.loginDialog.run(context, this.dialogState);
             // By calling next() you ensure that the next BotHandler is run.
             await next();
         });
 
+        // Note: Teams channel does not use onTokenResponseEvent, instead it uses handleTeamsSigninVerifyState() declared below.
         this.onTokenResponseEvent(async (context, next) => {
             //A Token Response Event is emitted when the user successfully logs in through the Login card displayed.
             console.log('Running dialog with Token Response Event Activity.');
-            // Run the LoginDialog. The dialog was first started in onMembersAdded. 
-            // Since LoginDialog only consists of 2 step, it will end after this run.
-            // Currently there is no way for the user to summon LoginDialog again.
-            await this.loginDialog.run(context, this.dialogState);
+            // const str = JSON.stringify(context, null, 4);
+            // console.log(str);
+
+            await this.runLoginDialogCustom(context, this.dialogState);
             // By calling next() you ensure that the next BotHandler is run.
             await next();
         });
 
         this.onMessage(async (context, next) => {
+            
+            //before processing the message, bot will check for authentication first
+            //need to save the context first
+            //const originalContext = context;
+            
+            //console.log("onMessage:");
+            
+            //const str = JSON.stringify(context, null, 4);
+            //console.log(str);
+
             // Checks if the user has finished the LoginDialog.
-            const completedLogin = await this.loginDialogStatus(context,this.userState);
-            const botMessageText = context.activity.text.trim().toLowerCase();
-            if (completedLogin) {
+            const hasDialog = await this.hasActiveDialog(context,this.userState);
+            const botMessageText = context.activity.text.trim().toLowerCase() || '';
+            console.log("User input: " + botMessageText);
+
+            if (hasDialog === LOGIN_DIALOG) {
+                if (/\d{6}$/.test(botMessageText) || botMessageText === 'logout') {
+                    await this.loginDialog.run(context, this.dialogState);
+                } else {
+                    await context.sendActivity("Please login using the link above. This bot requires user authentication. \
+                        If there is an error with the link, use **_logout_** to restart the login.");
+                }
+            } else if (hasDialog === "not found") {
+                // let success = await this.loginDialog.run(context, this.dialogState);
+                // console.log("onmessage, not found, then ran loginDialog");
+                // console.log(success);
+                // let success = await this.loginDialog.run(context, this.dialogState);
+                // if (success.status === 'complete' && success.result === 'successful') {
+                //     await this.dialog.run(context, this.dialogState);
+                // }
+                await this.runLoginDialogCustom(context, this.dialogState);
+            } else {
                 // Proceed to handle user inputs.
                 if (botMessageText === "help") {
                     await this.handleMessageHelp(context);
                 } else  {
                     // Runs RootDialog.
-                    await this.dialog.run(context, this.dialogState, botMessageText);
+                    await this.dialog.run(context, this.dialogState);
                 }
-            // If user has not completed the LoginDialog.
-            } else {
-                if (/\d{6}$/.test(botMessageText)) {
-                    await this.loginDialog.run(context, this.dialogState, botMessageText);
-                } else {
-                    await context.sendActivity("Please login using the link above. This bot requires user authentication.");
-                }
-                
-                
             }
 
             await next();
@@ -98,6 +135,47 @@ class QnABot extends TeamsActivityHandler {
         });
     }
 
+    async runLoginDialogCustom(context, state) {
+        let success = await this.loginDialog.run(context, state);
+        if (success.status === 'complete' && success.result === 'successful') {
+            console.log('runLoginDialogCustom, complete and successful');
+            await this.dialog.run(context, state);
+        }
+    }
+
+    async handleTeamsSigninVerifyState(context, state) {
+        await this.runLoginDialogCustom(context, this.dialogState);
+    }
+
+    async hasActiveDialog(context, userState) {
+        // Verifies if the user is currently in the LoginDialog.
+        // context has information on the user.
+        const activity = context._activity;
+        const memoryKey = activity.channelId + "/conversations/" + activity.conversation.id + "/";
+        // userState stores the users information under the 'memory' property.
+        // We use the 'memoryKey' string to get the userState for the particular user.
+        let memory = userState.storage.memory[memoryKey];
+        // Memory is a JSON string, need to convert to object
+        let currDialogId = "not found";
+        //console.log("hasActiveDialog: is this the error?" + typeof(memory));
+        if (typeof(memory) !== "undefined") {
+            memory = JSON.parse(memory);
+        
+            // If there is at least 1 active dialog, we return one of its IDs (with this implementation, will return the last one).
+            if (typeof(memory.DialogState.dialogStack[0]) !== "undefined") {
+                for (let i=0;i<memory.DialogState.dialogStack.length;i++) {
+                    currDialogId = memory.DialogState.dialogStack[i].id;
+                    // If login-dialog is present, then return its id immediately.
+                    if (currDialogId === LOGIN_DIALOG) {
+                        break;
+                    }
+                }
+            }
+        }
+        console.log("currDialogId is: " + currDialogId);
+        return currDialogId;
+    }
+    // unused
     async loginDialogStatus(context, userState) {
         // Verifies if the user is currently in the LoginDialog.
         // context has information on the user.
@@ -110,17 +188,21 @@ class QnABot extends TeamsActivityHandler {
         memory = JSON.parse(memory);
         let currDialogId = "";
         if (typeof(memory.DialogState.dialogStack[0]) !== "undefined") {
-            currDialogId = memory.DialogState.dialogStack[0].id;
-        } else {
-            currDialogId = "not found";
+            
+            for (let i=0;i<memory.DialogState.dialogStack.length;i++) {
+                currDialogId = memory.DialogState.dialogStack[i].id;
+                if (currDialogId === LOGIN_DIALOG) {
+                    console.log("currDialogId is: " + currDialogId);
+                    return true;
+                }
+            }
         }
-        console.log("currDialogId is: " + currDialogId); //debug
-        // userState shows that user is still in the LoginDialog.
-        if (currDialogId === "LoginDialog") {
-            return false;
-        } else {
-            return true;
-        }
+        if (currDialogId == "") {currDialogId = "not found"; }
+        console.log("currDialogId is: " + currDialogId);
+        return false;
+
+        //returns false if currDialogId === LOGIN_DIALOG i.e. user is still in login process
+        //returns true otherwise
     }
 
 
@@ -166,7 +248,7 @@ class QnABot extends TeamsActivityHandler {
     }
 
     async timeOfDay() {
-        const hour = new Date().getHours();
+        const hour = new Date().getHours() + 8;
         if (hour >= 4 && hour <= 11) {
             return 'morning';
         } else if (hour >= 12 && hour <= 17) {
@@ -176,17 +258,26 @@ class QnABot extends TeamsActivityHandler {
         }
     }
 
+    /*
+    TODO: update the help text to provide more information on functionality.
+    */
+
     async handleMessageHelp(context) {
         const mention = {
-            mentioned: context.activity.from,
-            text: `<at>${new TextEncoder().encode(context.activity.from.name)}</at>`,
+            mentioned: context._activity.from,
+            text: `<at>${new TextEncoder().encode(context._activity.from.name)}</at>`,
             type: "mention"
         };
-        const replyActivity = MessageFactory.text(`Hi ${mention.text}!. Commands: \
+        const replyActivity = MessageFactory.text(`# Help \
+            \n\n Hi, ${mention.text}! *When ready, type anything continue the conversation.* \
+            \n\n ## About \
+            \n\n This chatbot aims to help you find your answers to your technical questions more quickly. \
+            \n\n This chatbot was developed by GovTech GIG IPE. To view the GitHub repository, visit this [link](https://github.com/ngkc1996/teamsbot/). \
+
+            \n\n ## Commands: \
             \n\n **_help_** Shows the list of commands. \
-            \n\n **_query_** Ask the bot a query or browse FAQs. \
+            \n\n **_logout_** Logout from the bot. Recommended to do before you leave. \
             \n\n \
-            \n\n This is a chatbot developed by GovTech GIG IPE. For more information, visit this [link](https://github.com/ngkc1996/teamsbot/). 
             `);
         replyActivity.entities = [mention];
         await context.sendActivity(replyActivity);

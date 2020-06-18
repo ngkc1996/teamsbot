@@ -26,12 +26,13 @@ class LogoutDialog extends ComponentDialog {
     async interrupt(innerDc) {
         if (innerDc.context.activity.type === ActivityTypes.Message) {
             const text = innerDc.context.activity.text ? innerDc.context.activity.text.toLowerCase() : '';
+            //console.log("from interrupt, text: " + text);
             if (text === 'logout') {
                 // The bot adapter encapsulates the authentication processes.
                 const botAdapter = innerDc.context.adapter;
                 await botAdapter.signOutUser(innerDc.context, process.env.ConnectionName);
-                await innerDc.context.sendActivity('You have been signed out.');
-                return await innerDc.cancelAllDialogs();
+                await innerDc.context.sendActivity('You have been signed out. Type anything to login again.');
+                await innerDc.cancelAllDialogs();
             }
         }
     }

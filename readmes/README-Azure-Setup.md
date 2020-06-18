@@ -14,7 +14,7 @@ This guide will walk through the steps needed to create the following Azure Apps
 - Upon creation, to change the pricing plan, go to the newly created App Service.
 	- App Service Plan > Change App Service Plan
 	- Select an existing plan or create a new one.
-	- Delete the default App Service Plan, whcih has the same name as your App Service.
+	- Delete the default App Service Plan, which has the same name as your App Service.
 - Return to https://www.qnamaker.ai/Create to finish creating your KB.
 
 ### Importing
@@ -57,4 +57,4 @@ This guide will walk through the steps needed to create the following Azure Apps
 - Go to the Web App Bot page in the Azure portal.
 - Under App Service Settings > Configuration, fill in the 3 values.
 
-If you are planning to use Bot Framework Emulator locally, you need to update your .env file as well.
+If you are planning to use Bot Framework Emulator locally, you need to update your .env file.

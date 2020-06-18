@@ -1,6 +1,6 @@
 
 // index.js is used to setup and configure your bot
-
+'use strict';
 // Import required packages
 const path = require('path');
 const restify = require('restify');
@@ -24,7 +24,8 @@ require('dotenv').config({ path: ENV_FILE });
 const adapter = new BotFrameworkAdapter({
     appId: process.env.MicrosoftAppId,
     appPassword: process.env.MicrosoftAppPassword,
-    openIdMetadata: process.env.BotOpenIdMetadata
+    // not what the below is but was there from before
+    //openIdMetadata: process.env.BotOpenIdMetadata
 });
 
 // Catch-all for errors.
@@ -43,10 +44,8 @@ adapter.onTurnError = async (context, error) => {
     );
 
     // Send a message to the user
-    let onTurnErrorMessage = 'The bot encounted an error or bug.';
-    await context.sendActivity(onTurnErrorMessage, onTurnErrorMessage, InputHints.ExpectingInput);
-    onTurnErrorMessage = 'To continue to run this bot, please fix the bot source code.';
-    await context.sendActivity(onTurnErrorMessage, onTurnErrorMessage, InputHints.ExpectingInput);
+    await context.sendActivity('The bot encountered an error or bug.');
+    await context.sendActivity('To continue to run this bot, please fix the bot source code.');
     // Clear out state
     await conversationState.delete(context);
 };
@@ -92,8 +91,8 @@ server.listen(process.env.port || process.env.PORT || 3978, function() {
 
 // Listen for incoming requests.
 server.post('/api/messages', (req, res) => {
-    adapter.processActivity(req, res, async (turnContext) => {
+    adapter.processActivity(req, res, async (context) => {
         // Route the message to the bot's main handler.
-        await bot.run(turnContext);
+        await bot.run(context);
     });
 });
