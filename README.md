@@ -15,7 +15,7 @@ This project involved creating a conversational chatbot using Microsoft Bot Fram
 
 <p align="center">Demo</p>
 <p align="center">
-    <img width=700 src="./media/demo.gif...."/>
+    <img width=700 src="./media/demo.gif"/>
 </p>
 
 ## Work in progress
