@@ -9,7 +9,7 @@ class LoginDialog extends LogoutDialog {
     constructor() {
         super(LOGIN_DIALOG);
     }
-
+    // Bot gets token using its own identity.
     static async getToken() {
         const fetch = require('node-fetch');
         const { URLSearchParams } = require('url');

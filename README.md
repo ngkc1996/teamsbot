@@ -1,28 +1,19 @@
 ﻿# TeamsBot
 
-This project involved creating a conversational chatbot using Microsoft Bot Framework. The bot was deployed on Azure Bot Service and distributed on Microsoft Teams. This project was completed during the author's internship at GovTech, from May to July 2020.
+This project involved creating a conversational chatbot using Microsoft Bot Framework. The bot was deployed on Azure Bot Service and distributed on Microsoft Teams. This project was completed during the author's internship at GovTech Government Infrastructure Group, from May to July 2020.
 
 ## Key Functionalities
 
-- Users are able to browse  
-
-
-- Authentication with DiamondSG Microsoft account using Azure Active Directory.
-- Able to query QnA Maker with user input and retrieve top result from the QnA Maker Database.
-- Basic greeting message, dialog flow and help commands.
+- The aim of the bot is to provide a platform for users to search for and view information.
+- Users are able to browse through categories to view FAQs.
+- Users are able to use natural language queries to search for answers.
 - Responds to user reactions (e.g. liking a message).
 
 
-<p align="center">Demo</p>
+<p align="center">Demo of bot functionalities</p>
 <p align="center">
     <img width=700 src="./media/demo.gif"/>
 </p>
-
-## Work in progress
-
-- Allowing users to logout.
-- Developing the "browse" dialog flow which will allow users to browse from a list of FAQs instead of asking their own query.
-- Additional dialog flow for ease of use and intuitiveness.
 
 ## Prerequisites
 
@@ -72,12 +63,11 @@ Note: You need to ask the author for the necessary credentials in the .env file.
 - Launch Bot Framework Emulator
 - Create a new bot configuration
 - Enter a Bot URL of `http://localhost:3978/api/messages`
-- Enter the Microsoft App ID and password corresponding to the .env file
+- Enter the Microsoft App ID and password corresponding to the .env file.
 
+## More guides
 
-
-More guides and instructions to be added soon.
-
+More guides can be found in the `readmes` folder.
 
 ## Disclaimers
 

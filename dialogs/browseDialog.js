@@ -1,30 +1,26 @@
 const {
-    ComponentDialog,
     TextPrompt,
-    WaterfallDialog,
-    DialogSet,
-    DialogTurnStatus,
-    OAuthPrompt,
-    ChoicePrompt,
-    ChoiceFactory,
+    WaterfallDialog
 } = require('botbuilder-dialogs');
 
+// Adaptive Cards
 const { CardFactory } = require('botbuilder');
 const AdaptiveCards = require("adaptivecards");
 const ACData = require("adaptivecards-templating");
 
-const { LoginDialog } = require('../dialogs/loginDialog');
-const { LogoutDialog } = require('./logoutDialog');
-const { GraphHelpers } = require('../graph-helpers/graph-helpers');
-
+// Adaptive Card templates
 const BrowseCardTemplate = require('../resources/cards/BrowseCard.json');
 const CategoryCardTemplate = require('../resources/cards/CategoryCard.json');
+
+const { LoginDialog } = require('../dialogs/loginDialog');
+const { LogoutDialog } = require('./logoutDialog');
+
+// GraphHelpers contains functions which implement backend logic to call Microsoft Graph APIs.
+const { GraphHelpers } = require('../graph-helpers/graph-helpers');
 
 const TEXT_PROMPT = 'TEXT_PROMPT';
 const BROWSE_DIALOG = 'BROWSE_DIALOG';
 const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
-const OAUTH_PROMPT = 'oAuthPrompt';
-const CHOICE_PROMPT = 'CHOICE_PROMPT';
 
 /*
 Note regarding logins:
@@ -53,16 +49,17 @@ class BrowseDialog extends LogoutDialog {
     }
 
     async mainBrowseStep(step) {
+        // Check login status.
         const token = await LoginDialog.getToken();
         if (!token) {
             await step.context.sendActivity('Login was not successful please try again.');
             return await step.replaceDialog(BROWSE_DIALOG);
         }
-        // Fetch categories from Graph API.
+        // Fetch categories from Graph.
         const categories = await GraphHelpers.getAllCategories(step.context, token);
         // Create a template instance
         const template = new ACData.Template(BrowseCardTemplate);
-        // Creating the data object to bind to template.
+        // Create the data object to bind to template.
         let data = {}
         data['$root'] = {}
         data.$root.category = []

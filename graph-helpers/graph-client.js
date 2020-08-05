@@ -22,7 +22,7 @@ class GraphClient {
             }
         });
     }
-
+    // Fetches entire Sharepoint list
     async getEntireDatabase(siteId, listName){
         return await this.graphClient
             .api(`/sites/${siteId}/lists/${listName}/items?expand=fields`)

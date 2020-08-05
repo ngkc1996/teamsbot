@@ -3,7 +3,7 @@
 This guide will walk through the steps needed to create the following Azure Apps and Services:
 - QnA Maker
 - Web App Bot
-- Azure AD
+- Azure Active Directory
 
 ## QnA Maker
 

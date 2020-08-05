@@ -3,7 +3,7 @@ This bot was originally built with a user login functionality. See: https://docs
 This was replaced by the bot authenticating with its own identity. See: https://docs.microsoft.com/en-us/graph/auth-v2-service
 More information can be found in the accompanying report.
 
-This code does not fulfill any function and is left for reference.
+This code does not fulfill any function and is left for reference only.
 */
 
 const { ActivityTypes } = require('botbuilder');

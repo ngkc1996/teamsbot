@@ -23,7 +23,7 @@ const {
     QnADialogResponseOptions
 } = require('./qnamakerBaseDialog');
 
-//Cards
+// Adaptive Cards
 const { ActivityTypes, CardFactory } = require('botbuilder');
 const AdaptiveCards = require("adaptivecards");
 const ACData = require("adaptivecards-templating");
@@ -36,7 +36,7 @@ const WATERFALL_DIALOG = 'WATERFALL_DIALOG';
 const CONFIRM_PROMPT = 'CONFIRM_PROMPT';
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
 
-//Images
+// Images
 const AskGigScreenshot = '../resources/images/askgig-ss.png';
 
 class QueryDialog extends ComponentDialog {
@@ -92,9 +92,11 @@ class QueryDialog extends ComponentDialog {
             top: DefaultTopN,
             context: {}
         };        
-
+        // Fetches response from QnA Maker API
         var responses = await this._qnaMakerService.getAnswersRaw(step.context, qnaMakerOptions);
+        // Debug purposes
         console.log(responses);
+        // Store response temporarily
         step.values.result = responses;
 
         if (responses != null) {
@@ -114,11 +116,13 @@ class QueryDialog extends ComponentDialog {
                 return await step.prompt(CONFIRM_PROMPT, 'Was this answer satisfactory?', ['Yes', 'No']);
             } else {
                 await step.context.sendActivity("No suitable answer found. Post your answer on AskGIG, or rephrase your question.");
+                // Restarts dialog.
                 return await step.replaceDialog(QUERY_DIALOG);
             }
         } else {
-            await step.context.sendActivity("Also no answer.");
-            return await step.next();
+            await step.context.sendActivity("There was no answer from QnA Maker.");
+            // Restarts dialog.
+            return await step.replaceDialog(QUERY_DIALOG);
         }
     }
 
@@ -128,6 +132,8 @@ class QueryDialog extends ComponentDialog {
             await step.context.sendActivity('Great, happy to help.');
         } else {
             console.log(`this is the result:  ${step.values.result}`);
+            // Gets the suggested category, which is the category which the best answer is tagged to.
+            // Can also be changed to reveal the categories of the top x answers.
             const category = step.values.result.answers[0].metadata[0].value;
 
             const imageData = fs.readFileSync(path.join(__dirname, AskGigScreenshot));

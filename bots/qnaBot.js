@@ -1,8 +1,11 @@
-
-const { ActivityHandler, TeamsActivityHandler, MessageFactory } = require('botbuilder');
+/*
+TeamsActivityHandler is used instead of the default ActivityHandler to enable some
+Teams-only functionalities. These functionalities will not be supported if bot is connected to
+other channels.
+*/
+const { TeamsActivityHandler, MessageFactory } = require('botbuilder');
 
 const { TextEncoder } = require('util');
-const { LoginDialog, LOGIN_DIALOG } = require('../dialogs/loginDialog');
 
 class QnABot extends TeamsActivityHandler {
     /**
@@ -38,7 +41,7 @@ class QnABot extends TeamsActivityHandler {
                         \n\n Type anything to start.`);
                 }
             }
-
+            // This statement ensures the bot handles future activities.
             await next();
         });
         /*
@@ -54,10 +57,11 @@ class QnABot extends TeamsActivityHandler {
                 context.activity.text = JSON.stringify(context.activity.value);
                 botMessageText = '*Card response detected*';
             }
-            // Debug
+            // Debug purposes
             console.log("User input: " + botMessageText);
             
             // Handle user inputs.
+            // If user types "help" at any time, the handleMessageHelp function is called.
             if (botMessageText === "help") {
                 await this.handleMessageHelp(context);
             } else  {
@@ -89,8 +93,10 @@ class QnABot extends TeamsActivityHandler {
         });
     }
 
-    // When user presses "Help" button.
+    // When user presses "Help" button or types "help".
     async handleMessageHelp(context) {
+        // Fetches the user's name.
+        // Demonstrates that user information can be accessed.
         const mention = {
             mentioned: context._activity.from,
             text: `<at>${new TextEncoder().encode(context._activity.from.name)}</at>`,

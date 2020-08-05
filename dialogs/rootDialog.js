@@ -1,13 +1,9 @@
 
 const {
-    ComponentDialog,
     DialogSet,
     DialogTurnStatus,
     WaterfallDialog,
-    ConfirmPrompt,
-    ChoicePrompt, 
-    ChoiceFactory,
-    TextPrompt,
+    TextPrompt
 } = require('botbuilder-dialogs');
 
 // Child dialogs
@@ -15,7 +11,7 @@ const { BrowseDialog, BROWSE_DIALOG } = require('./browseDialog');
 const { QueryDialog, QUERY_DIALOG } = require('./queryDialog');
 const { LogoutDialog } = require('./logoutDialog');
 
-// Cards
+// Adaptive Cards
 const { CardFactory } = require('botbuilder');
 const AdaptiveCards = require("adaptivecards");
 const ACData = require("adaptivecards-templating");
@@ -23,8 +19,6 @@ const MainScreenCardTemplate = require('../resources/cards/MainScreenCard.json')
 
 const INITIAL_DIALOG = 'initial-dialog';
 const ROOT_DIALOG = 'root-dialog';
-const CONFIRM_PROMPT = 'CONFIRM_PROMPT';
-const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const TEXT_PROMPT = 'TEXT_PROMPT';
 
 class RootDialog extends LogoutDialog {
@@ -44,8 +38,6 @@ class RootDialog extends LogoutDialog {
 
         this.addDialog(new BrowseDialog());
         this.addDialog(new QueryDialog(this._qnaMakerService));
-        this.addDialog(new ConfirmPrompt(CONFIRM_PROMPT));
-        this.addDialog(new ChoicePrompt(CHOICE_PROMPT));
         this.addDialog(new TextPrompt(TEXT_PROMPT));
         
         this.initialDialogId = INITIAL_DIALOG;
@@ -89,7 +81,8 @@ class RootDialog extends LogoutDialog {
 
     /*
     When user presses a button to start a particular conversation, the bot will call the Dialog for that conversation option.
-    Note: Bot only responds to user interactions within the Card interface.
+    Note: Bot only responds to user interactions within the Card interface. Any other action such as typing a message
+    will not be accepted, and the dialog will restart.
     */
     async handleConversationChoiceStep(step) {
         try {
