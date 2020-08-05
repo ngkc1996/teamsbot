@@ -1,0 +1,30 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "Query",
+            "size": "Large",
+            "weight": "Bolder"
+        },
+        {
+            "type": "TextBlock",
+            "text": "Enter your query, and I'll try my best to answer it.",
+            "wrap": true
+        },
+        {
+            "type": "Input.Text",
+            "id": "query",
+            "isMultiline": false
+        }
+    ],
+    "actions": [
+
+        {
+            "type": "Action.Submit",
+            "title": "Submit"
+        }
+    ]
+}

@@ -1,5 +1,6 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+Edited from the official template by Microsoft. 
+*/
 
 const {
     ComponentDialog,
@@ -63,8 +64,6 @@ class QnAMakerBaseDialog extends ComponentDialog {
             qnaId: -1 //sets current id to -1
         };
 
-        // where does getDialogOptionsValue come from??
-        // - presumably it gets the dialogOptions object from 
         var dialogOptions = getDialogOptionsValue(stepContext);
 
         // making sure dialogOptions is properly filled
@@ -222,21 +221,7 @@ class QnAMakerBaseDialog extends ComponentDialog {
     * @param {WaterfallStepContext} stepContext contextual information for the current step being executed.
     */
     async displayQnAResult(stepContext) {
-        //var dialogOptions = getDialogOptionsValue(stepContext);
-        //var qnaDialogResponseOptions = dialogOptions[QnADialogResponseOptions];
-
-        //var reply = stepContext.context.activity.text;
-
-        // if (reply === qnaDialogResponseOptions.cardNoMatchText) {
-        //     await stepContext.context.sendActivity(qnaDialogResponseOptions.cardNoMatchResponse);
-        //     return await stepContext.endDialog();
-        // }
-
-        // var previousQnAId = dialogOptions[PreviousQnAId];
-        // if (previousQnAId > 0) {
-        //     return await stepContext.replaceDialog(QNAMAKER_DIALOG, dialogOptions);
-        // }
-
+        
         var responses = stepContext.result;
         if (responses != null) {
             if (responses.length > 0) {

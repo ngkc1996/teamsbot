@@ -1,0 +1,115 @@
+{
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "type": "AdaptiveCard",
+    "version": "1.0",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "Here are the FAQs for *${category}*.",
+            "size": "extraLarge",
+            "weight": "Bolder"
+        },
+        {
+            "type": "Container",
+            "$data": "${qnaPairs}",
+            "items": [
+                {
+                    "type": "ColumnSet",
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "text": "${question}",
+                                    "size": "medium",
+                                    "wrap": true
+                                }
+                            ],
+                            "width": "stretch"
+                        },
+                        {
+                            "type": "Column",
+                            "id": "chevronDown${index}",
+                            "spacing": "Small",
+                            "items": [
+                                {
+                                    "type": "Image",
+                                    "selectAction": {
+                                        "type": "Action.ToggleVisibility",
+                                        "title": "collapse",
+                                        "targetElements": [
+                                            "cardContent${index}",
+                                            "chevronUp${index}",
+                                            "chevronDown${index}"
+                                        ]
+                                    },
+                                    "url": "https://adaptivecards.io/content/down.png",
+                                    "width": "20px",
+                                    "altText": "collapsed"
+                                }
+                            ],
+                            "width": "auto"
+                        },
+                        {
+                            "type": "Column",
+                            "id": "chevronUp${index}",
+                            "isVisible": false,
+                            "spacing": "Small",
+                            "verticalContentAlignment": "Center",
+                            "items": [
+                                {
+                                    "type": "Image",
+                                    "selectAction": {
+                                        "type": "Action.ToggleVisibility",
+                                        "title": "expand",
+                                        "targetElements": [
+                                            "cardContent${index}",
+                                            "chevronUp${index}",
+                                            "chevronDown${index}"
+                                        ]
+                                    },
+                                    "url": "https://adaptivecards.io/content/up.png",
+                                    "width": "20px",
+                                    "altText": "expanded"
+                                }
+                            ],
+                            "width": "auto"
+                        }
+                    ]
+                },
+                {
+                    "type": "Container",
+                    "id": "cardContent${index}",
+                    "style": "emphasis",
+                    "isVisible": false,
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "${answer}",
+                            "wrap": true
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Action.Submit",
+            "title": "Back to categories",
+            "data": {
+                "response": "restart"
+            }
+        },
+        {
+            "type": "Action.Submit",
+            "title": "Stop browsing",
+            "data": {
+                "response": "end"
+            }
+        }
+
+    ]
+    
+}

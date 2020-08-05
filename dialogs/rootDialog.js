@@ -1,65 +1,53 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
 
 const {
     ComponentDialog,
     DialogSet,
     DialogTurnStatus,
     WaterfallDialog,
-    ConfirmPrompt, //new
+    ConfirmPrompt,
     ChoicePrompt, 
     ChoiceFactory,
     TextPrompt,
 } = require('botbuilder-dialogs');
 
-const {
-    QnAMakerBaseDialog,
-    QNAMAKER_BASE_DIALOG,
-    DefaultCardNoMatchResponse,
-    DefaultCardNoMatchText,
-    DefaultCardTitle,
-    DefaultNoAnswer,
-    DefaultThreshold,
-    DefaultTopN,
-    QnAOptions,
-    QnADialogResponseOptions
-} = require('./qnamakerBaseDialog');
-
 // Child dialogs
 const { BrowseDialog, BROWSE_DIALOG } = require('./browseDialog');
+const { QueryDialog, QUERY_DIALOG } = require('./queryDialog');
+const { LogoutDialog } = require('./logoutDialog');
+
+// Cards
+const { CardFactory } = require('botbuilder');
+const AdaptiveCards = require("adaptivecards");
+const ACData = require("adaptivecards-templating");
+const MainScreenCardTemplate = require('../resources/cards/MainScreenCard.json');
 
 const INITIAL_DIALOG = 'initial-dialog';
 const ROOT_DIALOG = 'root-dialog';
-const CONFIRM_PROMPT = 'CONFIRM_PROMPT'; //new
+const CONFIRM_PROMPT = 'CONFIRM_PROMPT';
 const CHOICE_PROMPT = 'CHOICE_PROMPT';
 const TEXT_PROMPT = 'TEXT_PROMPT';
 
-class RootDialog extends ComponentDialog {
+class RootDialog extends LogoutDialog {
     /**
      * Root dialog for this bot.
      * @param {QnAMaker} qnaService A QnAMaker service object.
      */
     constructor(qnaService) {
         super(ROOT_DIALOG);
-
         this._qnaMakerService = qnaService;
-
-        // Initial waterfall dialog.
+        // Waterfall dialog.
         this.addDialog(new WaterfallDialog(INITIAL_DIALOG, [
-            //this.guidedConversationChoiceStep.bind(this),
-            //this.browseStep.bind(this), //browse
-            //this.categoriesStep.bind(this),
-            this.qnaQuestionStep.bind(this),
-            this.startInitialDialog.bind(this),
-            this.askStep.bind(this),
-            this.confirmStep.bind(this) // new
+            this.conversationChoiceStep.bind(this),
+            this.handleConversationChoiceStep.bind(this),
+            this.lastStep.bind(this)
         ]));
 
-        //this.addDialog(new QnAMakerBaseDialog(qnaService));
-        this.addDialog(new BrowseDialog()); //browse
-        this.addDialog(new ConfirmPrompt(CONFIRM_PROMPT)); //new
+        this.addDialog(new BrowseDialog());
+        this.addDialog(new QueryDialog(this._qnaMakerService));
+        this.addDialog(new ConfirmPrompt(CONFIRM_PROMPT));
         this.addDialog(new ChoicePrompt(CHOICE_PROMPT));
         this.addDialog(new TextPrompt(TEXT_PROMPT));
+        
         this.initialDialogId = INITIAL_DIALOG;
     }
 
@@ -69,131 +57,60 @@ class RootDialog extends ComponentDialog {
      * @param {*} turnContext
      * @param {*} accessor
      */
-    async run(context, accessor, botMessageText) {
+    async run(context, accessor) {
         const dialogSet = new DialogSet(accessor);
         dialogSet.add(this);
-
         const dialogContext = await dialogSet.createContext(context);
         const results = await dialogContext.continueDialog();
+        
         if (results.status === DialogTurnStatus.empty) {
-        	// If no existing dialog, user must type "query" in order to start the dialog.
-        	if (botMessageText !== "query") {
-        		await context.sendActivity("I did not recognise that command. Try typing **_help_**.");
-        	} else {
-				console.log("new dialog made!"); //debug
-        		await dialogContext.beginDialog(this.id);
-        	}
+    		await dialogContext.beginDialog(this.id);
         }
     }
-
-    // Ask user if they wants a free query or guided conversation
-    async guidedConversationChoiceStep(step) {
-        return await step.prompt(CHOICE_PROMPT, {
-            prompt: 'You . Please choose: ',
-            choices: ChoiceFactory.toChoices(['Write my own query.', 'Give me some categories to choose from.'])
-        });
-    }
-    //browse
-    async browseStep(step) { 
-    	return await step.beginDialog(BROWSE_DIALOG);
-    }
-
-    async categoriesStep(step){
-        await step.context.sendActivity(step.result);
-        if (step.result === 'end') {
-        	return await step.endDialog();
-        }
+    /*
+    Displays "Main Screen" Card.
+    This card allows users to choose which conversation they want to start.
+    */
+    async conversationChoiceStep(step) {
+        // Create the Card
+        const mainScreenCard = new ACData.Template(MainScreenCardTemplate);
+        // Create empty data object.
+        let data = {}
+        data['$root'] = {}
+        const card = mainScreenCard.expand(data);
         
-        return await step.prompt(CHOICE_PROMPT, {
-            prompt: 'You chose Guided Query. Please select from the following categories.',
-            choices: ChoiceFactory.toChoices(['Write my own query.', 'Give me some categories to choose from.'])
-        });
+        await step.context.sendActivity({
+                attachments: [CardFactory.adaptiveCard(card)]
+            });
+        // Adaptive Cards do not work well in a Waterfall dialog, the text prompt is to make sure 
+        // the context returns to this dialog.
+        return await step.prompt(TEXT_PROMPT, "");
     }
 
-
-    async qnaQuestionStep(step) {
-    	const promptOptions = { prompt: 'Please type your query.' };
-        return await step.prompt(TEXT_PROMPT, promptOptions);
-    }
-
-    // This is the first step of the WaterfallDialog.
-    // It kicks off the dialog with the QnA Maker with provided options.
-    async startInitialDialog(step) {
-        // Set values for generate answer options.
-        var qnaMakerOptions = {
-            scoreThreshold: DefaultThreshold,
-            top: DefaultTopN,
-            context: {}
-        };
-
-
-        // try to put the whole QnA response here instead:
-        step.context.activity.text = step.result;
-        var responses = await this._qnaMakerService.getAnswersRaw(step.context, qnaMakerOptions);
-        console.log(responses);
-        step.values.result = responses;
-
-        if (responses != null) {
-            if (responses.answers.length > 0) {
-                await step.context.sendActivity(responses.answers[0].answer);
-                return await step.next();
-            } else {
-                await step.context.sendActivity("No suitable answer found. Post your answer on AskGIG, or rephrase your question.");
-                return await step.endDialog();
+    /*
+    When user presses a button to start a particular conversation, the bot will call the Dialog for that conversation option.
+    Note: Bot only responds to user interactions within the Card interface.
+    */
+    async handleConversationChoiceStep(step) {
+        try {
+            const result = JSON.parse(step.result);
+            const choice = result.dialogChoice;
+            if (choice === 'browse') {
+                return await step.beginDialog(BROWSE_DIALOG);
             }
-        } else {
-            await step.context.sendActivity("Also no answer.");
-            return await step.next();
+            if (choice === 'query') {
+                return await step.beginDialog(QUERY_DIALOG);
+            } else {
+                return await step.replaceDialog(ROOT_DIALOG);
+            }
+        } catch {
+            return await step.replaceDialog(ROOT_DIALOG);
         }
-
-        // if (responses != null) {
-        //     if (responses.answers.length > 0) {
-        //         await step.context.sendActivity(responses.answers[0]);
-        //     } else {
-        //         await step.context.sendActivity("No suitable answer found.");
-        //     }
-        // }
-
-        
-
-        // Set values for dialog responses.
-        // var qnaDialogResponseOptions = {
-        //     noAnswer: DefaultNoAnswer,
-        //     activeLearningCardTitle: DefaultCardTitle,
-        //     cardNoMatchText: DefaultCardNoMatchText,
-        //     cardNoMatchResponse: DefaultCardNoMatchResponse
-        // };
-
-        // var dialogOptions = {};
-        // dialogOptions[QnAOptions] = qnamakerOptions;
-        // dialogOptions[QnADialogResponseOptions] = qnaDialogResponseOptions;
-
-        //return await step.beginDialog(QNAMAKER_BASE_DIALOG, dialogOptions);
-        
-        
     }
 
-    async askStep(step) {
-        // maybe??
-        //step.values.transport = step.result.value;
-
-        //console.log(step.result.value);
-
-        return await step.prompt(CONFIRM_PROMPT, 'Was this answer satisfactory?', ['Yes', 'No']);
-    }
-
-    async confirmStep(step) {
-        if (step.result) {
-            await step.context.sendActivity('Great, happy to help. Type **_query_** to start a new query.');
-        } else {
-            console.log(`this is the result:  ${step.values.result}`);
-            const category = step.values.result.answers[0].metadata[0].value;
-            console.log(category);
-            await step.context.sendActivity(`Sorry to hear that. Post your answer on AskGIG, under the category: '${category}'. \
-            	\n\n Try asking more questions using **_query_**.`);
-        }
-
-        return await step.endDialog();
+    // Bot restarts this dialog whenever it ends.
+    async lastStep(step) {
+        return await step.replaceDialog(ROOT_DIALOG);
     }
 }
 

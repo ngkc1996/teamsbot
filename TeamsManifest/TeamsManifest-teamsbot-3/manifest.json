@@ -1,0 +1,57 @@
+{
+    "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.6/MicrosoftTeams.schema.json",
+    "manifestVersion": "1.6",
+    "version": "2.0.1",
+    "showLoadingIndicator": false,
+    "id": "c705f609-2898-4f44-9529-254ba10a0179",
+    "packageName": "teamsbot-test-3-bot",
+    "developer": {
+        "name": "ngkaichin",
+        "websiteUrl": "https://gccprod.sharepoint.com/sites/m365community",
+        "privacyUrl": "https://gccprod.sharepoint.com/sites/m365community",
+        "termsOfUseUrl": "https://gccprod.sharepoint.com/sites/m365community"
+    },
+    "icons": {
+        "color": "color.png",
+        "outline": "outline.png"
+    },
+    "name": {
+        "short": "AskGIG Bot",
+        "full": "AskGIG Bot"
+    },
+    "description": {
+        "short": "This chatbot was developed by GovTech GIG IPE.",
+        "full": "This chatbot aims to help you find your answers to your technical questions more quickly. This chatbot was developed by GovTech GIG IPE."
+    },
+    "accentColor": "#D85028",
+    "staticTabs": [
+        {
+            "entityId": "f8a83100-8ead-11ea-9f29-b987dab59646",
+            "name": "Welcome",
+            "contentUrl": "https://gccprod.sharepoint.com/sites/m365community",
+            "scopes": [
+                "personal"
+            ]
+        }
+    ],
+    "bots": [
+        {
+            "botId": "c705f609-2898-4f44-9529-254ba10a0179",
+            "scopes": [
+                "personal"
+            ],
+            "commandLists": [
+            ],
+            "supportsFiles": false,
+            "isNotificationOnly": false
+        }
+    ],
+    "permissions": [
+        "identity",
+        "messageTeamMembers"
+    ],
+    "validDomains": [
+        "token.botframework.com",
+        "teamsbot-test-2.azurewebsites.net"
+    ]
+}

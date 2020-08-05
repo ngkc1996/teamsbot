@@ -1,5 +1,10 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+/*
+This bot was originally built with a user login functionality. See: https://docs.microsoft.com/en-us/graph/auth-v2-user
+This was replaced by the bot authenticating with its own identity. See: https://docs.microsoft.com/en-us/graph/auth-v2-service
+More information can be found in the accompanying report.
+
+This code does not fulfill any function and is left for reference.
+*/
 
 const { ActivityTypes } = require('botbuilder');
 const { ComponentDialog } = require('botbuilder-dialogs');
@@ -30,8 +35,8 @@ class LogoutDialog extends ComponentDialog {
                 // The bot adapter encapsulates the authentication processes.
                 const botAdapter = innerDc.context.adapter;
                 await botAdapter.signOutUser(innerDc.context, process.env.ConnectionName);
-                await innerDc.context.sendActivity('You have been signed out.');
-                return await innerDc.cancelAllDialogs();
+                await innerDc.context.sendActivity('You have been signed out. Type anything to login again.');
+                await innerDc.cancelAllDialogs();
             }
         }
     }

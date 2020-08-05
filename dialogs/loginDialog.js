@@ -1,65 +1,40 @@
 
-const { DialogSet, DialogTurnStatus, OAuthPrompt, WaterfallDialog } = require('botbuilder-dialogs');
-const { LogoutDialog } = require('./logoutDialog');
+const fetch = require('node-fetch');
+const { URLSearchParams } = require('url');
 
-const MAIN_WATERFALL_DIALOG = 'mainWaterfallDialog';
-const OAUTH_PROMPT = 'oAuthPrompt';
+const { LogoutDialog } = require('./logoutDialog');
+const LOGIN_DIALOG = 'login-dialog';
 
 class LoginDialog extends LogoutDialog {
     constructor() {
-
-        super('LoginDialog');
-        this.addDialog(new OAuthPrompt(OAUTH_PROMPT, {
-                connectionName: process.env.ConnectionName,
-                text: 'Please login using this link below.',
-                title: 'Login to your Microsoft account',
-                timeout: 300000
-            }))
-            .addDialog(new WaterfallDialog(MAIN_WATERFALL_DIALOG, [
-                this.promptStep.bind(this),
-                this.loginStep.bind(this),
-            ]));
-        this.initialDialogId = MAIN_WATERFALL_DIALOG;
+        super(LOGIN_DIALOG);
     }
 
-    async run(context, accessor) {
-        console.log("entered loginDialog");
-        const dialogSet = new DialogSet(accessor);
-        dialogSet.add(this);
+    static async getToken() {
+        const fetch = require('node-fetch');
+        const { URLSearchParams } = require('url');
+        try {
+            const response = await fetch(`https://login.microsoftonline.com/${process.env.TenantId}/oauth2/v2.0/token`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
 
-        const dialogContext = await dialogSet.createContext(context);
-        const results = await dialogContext.continueDialog();
-        if (results.status === DialogTurnStatus.empty) {
-            console.log("dialogturnstatus.empty, starting new logindialog");
-            await dialogContext.beginDialog(this.id);
+                body: new URLSearchParams({
+                    grant_type: 'client_credentials',
+                    client_id: `${process.env.ClientId}`,
+                    client_secret: `${process.env.ClientSecret}`,
+                    scope: 'https://graph.microsoft.com/.default',
+                })
+            });
+            const json = await response.json();
+
+            return json.access_token;
+        } catch (err) {
+            throw err;
         }
-    }
-
-    async promptStep(step) {
-        console.log("promptstep loginDialog");
-        //const str = JSON.stringify(step, null, 4);
-        //console.log("promptStep step:" + str);
-        return step.beginDialog(OAUTH_PROMPT);
-    }
-
-    async loginStep(step) {
-        // Get the token from the previous step. Note that we could also have gotten the
-        // token directly from the prompt itself. There is an example of this in the next method.
-        const tokenResponse = step.result;
-        if (tokenResponse) {
-            await step.context.sendActivity(`You are now logged in.\
-                Ask me a question and I will try to answer it. \
-                \n\n **_help_** Shows the list of commands. \
-                \n\n **_query_** Ask the bot a query or browse FAQs. \
-                `);
-            //console.log("tokenresponse is " + tokenResponse);
-            //console.log("loginDialog end with token");
-            return await step.endDialog();
-        }
-        //console.log("loginDialog end no token");
-        await step.context.sendActivity('Login was not successful, please try again.');
-        return await step.endDialog(tokenResponse);
     }
 }
 
 module.exports.LoginDialog = LoginDialog;
+module.exports.LOGIN_DIALOG = LOGIN_DIALOG;

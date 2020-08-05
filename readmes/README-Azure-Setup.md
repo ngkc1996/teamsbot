@@ -3,46 +3,47 @@
 This guide will walk through the steps needed to create the following Azure Apps and Services:
 - QnA Maker
 - Web App Bot
+- Azure AD
 
 ## QnA Maker
 
-### Creating a Knowledge Base
+### Create a Knowledge Base
 
-- Go to the QnA Maker Portal [here](https://www.qnamaker.ai/).
+- Go to the [QnA Maker Portal](https://www.qnamaker.ai/).
 - Go to Create a Knowledge Base > Create a QnA Service
 	- For 'Azure Search location' and 'Website location', select (Asia Pacific) Southeast Asia.
 - Upon creation, to change the pricing plan, go to the newly created App Service.
 	- App Service Plan > Change App Service Plan
 	- Select an existing plan or create a new one.
-	- Delete the default App Service Plan, whcih has the same name as your App Service.
+	- Delete the default App Service Plan, which has the same name as your App Service.
 - Return to https://www.qnamaker.ai/Create to finish creating your KB.
 
-### Importing
+### Import files
 
 - In the Settings tab under Manage knowledge base, you can import QnA pairs by attaching files.
 - Save using "Save and train".
 
-### Editing
+### Edit Knowledge Base
 
 - In the Edit tab you can view the QnA pairs, categorised by source.
 - You can manually add questions, alternative phrasing, follow-up prompts, etc.
 - Save using "Save and train".
 
-### Testing
+### Test
 
-- The Test tab allows you to test queries and inspect the confidence scores.
+- The Test tab allows you to test queries and inspect confidence scores.
 
 ### Publish
 
-- When ready, the Publish tab allows you to publish the Knowledge Base to your QnA Maker Service to use in Azure Apps and Bots.
+- The Publish tab allows you to publish the Knowledge Base to your QnA Maker Service to use in Azure Apps and Bots.
 - These changes take place immediately.
 
-## Connecting the QnA Maker Knowledge Base to your bot
+## Connect QnA Maker Knowledge Base to your bot
 
 ### Create a new bot
 
-- Go to the QnA Maker Portal [here](https://www.qnamaker.ai/).
-- In the Publish tab, publish your knowledge base.
+- Go to the [QnA Maker Portal](https://www.qnamaker.ai/).
+- On the Publish tab, publish your knowledge base.
 - Select Create Bot.
 
 ### Connect to existing bot
@@ -57,4 +58,4 @@ This guide will walk through the steps needed to create the following Azure Apps
 - Go to the Web App Bot page in the Azure portal.
 - Under App Service Settings > Configuration, fill in the 3 values.
 
-If you are planning to use Bot Framework Emulator locally, you need to update your .env file as well.
+If you are hosting the bot locally for development (e.g. using Bot Framework Emulator), you need to update your .env file with these values, using the format `<variable-name>=<value>`.

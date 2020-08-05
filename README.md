@@ -1,23 +1,45 @@
 ﻿# TeamsBot
 
-To create a conversational bot in Microsoft Teams using Bot Framework.
+This project involved creating a conversational chatbot using Microsoft Bot Framework. The bot was deployed on Azure Bot Service and distributed on Microsoft Teams. This project was completed during the author's internship at GovTech, from May to July 2020.
+
+## Key Functionalities
+
+- Users are able to browse  
+
+
+- Authentication with DiamondSG Microsoft account using Azure Active Directory.
+- Able to query QnA Maker with user input and retrieve top result from the QnA Maker Database.
+- Basic greeting message, dialog flow and help commands.
+- Responds to user reactions (e.g. liking a message).
+
+
+<p align="center">Demo</p>
+<p align="center">
+    <img width=700 src="./media/demo.gif...."/>
+</p>
+
+## Work in progress
+
+- Allowing users to logout.
+- Developing the "browse" dialog flow which will allow users to browse from a list of FAQs instead of asking their own query.
+- Additional dialog flow for ease of use and intuitiveness.
 
 ## Prerequisites
 
 - Node.js
 
-## To try this sample
+## To try the bot
 
-### Try on Azure (recommended)
+### Try on Azure
 
 Note: You must have a DiamondSG account.
 
 - Navigate to Home > Resource Groups > Teamsbot.
 - Select bottestkb-bot (type: Web App Bot).
 - Navigate to Bot Management > Test in Web Chat.
-- The chatbot is live and can be tested here.
+- The chatbot is live and can be tested there.
 
-### Try on Bot Framework Emulator
+### Try on Bot Framework Emulator (local)
 
 #### Clone and run
 
@@ -31,7 +53,7 @@ Note: You need to ask the author for the necessary credentials in the .env file.
 
 - Navigate to root of the folder
 
-- Install modules
+- Install npm modules
 
     ```bash
     npm install
@@ -50,7 +72,13 @@ Note: You need to ask the author for the necessary credentials in the .env file.
 - Launch Bot Framework Emulator
 - Create a new bot configuration
 - Enter a Bot URL of `http://localhost:3978/api/messages`
+- Enter the Microsoft App ID and password corresponding to the .env file
 
 
 
 More guides and instructions to be added soon.
+
+
+## Disclaimers
+
+- This code uses Microsoft Bot Framework SDK which can be found [here](https://github.com/microsoft/BotBuilder-Samples).
